@@ -6,7 +6,7 @@ typedef struct Node {
 }Node;
 
 typedef struct ArrayList {
-    Node** nodes;
+    Node** nodes; // ArrayList中的nodes字段是一个指向指针的指针 其中每个Node*是指向一个Node实例的指针
     int size;
     int num_elements;
 }ArrayList;

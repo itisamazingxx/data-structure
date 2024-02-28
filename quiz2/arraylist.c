@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include <stdbool.h>
 #include"arraylist.h"
 
 /**
@@ -10,9 +11,7 @@
  * @return Value at the specified index, or NULL if index is out of bounds
  */
 char* get(ArrayList* list, int index) {
-    if(index > list->num_elements) return "OUT_OF_BOUNDS_EXCEPTION";
-    if(list->nodes == NULL 
-        || list->nodes[index] == NULL) return NULL;
+    if (index < 0 || index >= list->num_elements) return NULL;
     return list->nodes[index]->value;
 }
 
@@ -23,10 +22,11 @@ char* get(ArrayList* list, int index) {
  * @param index Index of the element to remove
  */
 void removeAt(ArrayList* list, int index) {
-    if(index > list->num_elements) return;
-    if(list->nodes[index] == NULL) return;
-    list->nodes[index] = NULL;
-    list->size--;
+    if (index < 0 || index > list->num_elements) return;
+    for (int i = index; i < list->num_elements - 1; i++) {
+        list->nodes[i] = list->nodes[i+1];
+    }
+    list->num_elements--; 
 }
 
 /**
@@ -36,16 +36,29 @@ void removeAt(ArrayList* list, int index) {
  * @return Pointer to the newly created ArrayList
  */
 ArrayList* create(int size) {
-    ArrayList* list = (ArrayList*)malloc(sizeof(ArrayList));
-    Node** nodes = (Node**)malloc(sizeof(Node*) * size);
-    int i;
-    for(i=0; i<size; i++) {
+    ArrayList* arr = (ArrayList*)malloc(sizeof(ArrayList));
+    Node** nodes = (Node**)malloc(sizeof(Node*)*size);
+    for (int i = 0; i < size; i++) {
         nodes[i] = NULL;
     }
-    list->nodes = nodes;
-    list->size = 0;
-    list->num_elements = size;
-    return list;
+    arr->nodes = nodes;
+    arr->num_elements = 0;
+    arr->size = size;
+    return arr;  
+}
+
+ArrayList* resize(ArrayList* list) {
+    int newSize = list->size * 2;
+    ArrayList* newList = create(newSize);
+    for (int i = 0; i < list->size; i++) {
+        newList->nodes[i] = list->nodes[i]; // shallow copy, 后续释放内存会出错
+    }
+    newList->num_elements = list->size;
+    for (int i = 0; i < list->size; i++) {
+        list->nodes[i] = NULL; // 避免双重释放
+    }
+    destroyList(list);
+    return newList;
 }
 
 /**
@@ -56,27 +69,13 @@ ArrayList* create(int size) {
  * @return Pointer to the ArrayList after adding the element
  */
 ArrayList* add(ArrayList* list, char* value) {
-    ArrayList* res;
-    if(list->size == list->num_elements) { //resize if array is at max size
-        ArrayList* l = create(list->size * 2);
-        int i;
-        for(i=0; i<list->size; i++) {
-            l->nodes[i] = list->nodes[i];
-        }
-        l->size = list->size;
-        l->num_elements = list->num_elements * 2;
-        res = l;
-        free(list->nodes); //must free the nodes since we're no longer using that array
-        free(list); //must free the list since we've reassigned, but we still need the nodes
-    } else {
-        res = list;
+    if (list->num_elements == list->size) {
+        list = resize(list);
     }
-
     Node* node = (Node*)malloc(sizeof(Node));
     node->value = value;
-    res->nodes[res->size] = node;
-    res->size = res->size+1;
-    return res;
+    list->nodes[list->num_elements++] = node;
+    return list;
 }
 
 /**
@@ -85,16 +84,16 @@ ArrayList* add(ArrayList* list, char* value) {
  * @param list Pointer to the ArrayList to be destroyed
  */
 void destroyList(ArrayList* list) {
-    int i;
-    for(i=0; i<list->size; i++) {
+    for (int i =0 ; i < list->size; i++) {
         if(list->nodes[i] != NULL) {
             free(list->nodes[i]);
         }
     }
-    if(list->nodes != NULL) {
+    if (list->nodes != NULL) {
         free(list->nodes);
     }
     free(list);
+    return;
 }
 
 /**

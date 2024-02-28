@@ -40,23 +40,23 @@ TEST(test,test) {
 
 TEST(get, testGetHappyPath) {
     ArrayList* list = create(10);
-    EXPECT_EQ(list->size, 0);
-    //EXPECT_EQ(list->num_elements, 10);
+    EXPECT_EQ(list->size, 10);
 
-    Node* n1 = createNode("test1");
+    Node* n1 = createNode(strdup("test1"));
     list->nodes[0] = n1;
-    list->size = 1;
+    list->num_elements++;
+    EXPECT_EQ(1, list->num_elements);
     char* res = get(list, 0);
+    EXPECT_STREQ(res, "test1");
     EXPECT_EQ(strcmp(n1->value, res), 0);
     destroyList(list);
 }
 
 TEST(get, testGetNullPath) {
     ArrayList* list = create(10);
-    Node* n1 = createNode("test1");
+    Node* n1 = createNode(strdup("test1"));
     list->nodes[0] = n1;
-    list->size = 1;
-    //list->num_elements = 10;
+    list->num_elements++;
     char* res = get(list, 1);
     EXPECT_EQ(res, nullptr);
     destroyList(list);
@@ -64,23 +64,22 @@ TEST(get, testGetNullPath) {
 
 TEST(removeAt, testRemoveAtHappyPath) {
     ArrayList* list = create(10);
-    Node* n1 = createNode("test1");
+    Node* n1 = createNode(strdup("test1"));
     list->nodes[0] = n1;
-    list->size = 1;
+    list->num_elements++;
     removeAt(list, 0);
     char* res = get(list, 0);
     EXPECT_EQ(res, nullptr);
-    EXPECT_EQ(0, list->size);
+    EXPECT_EQ(0, list->num_elements);
     destroyList(list);
-    //free(n1);
 }
 
 TEST(add, testAddHappyPath) {
     ArrayList* list = create(10);
-    add(list, "test1");
+    add(list, strdup("test1"));
     char* res = get(list, 0);
     EXPECT_EQ(strcmp("test1", res), 0);
-    EXPECT_EQ(1, list->size);
+    EXPECT_EQ(1, list->num_elements);
     destroyList(list);
 }
 
@@ -88,13 +87,12 @@ TEST(add, testAddResizePath) {
     ArrayList* list;
     ArrayList* created = create(2);
     list = created;
-    list = add(list, "test1");
-    list = add(list, "test2");
+    list = add(list, strdup("test1"));
+    list = add(list, strdup("test2"));
     EXPECT_TRUE(list == created); //test reference equality
-    EXPECT_EQ(list->size, 2);
-    //EXPECT_EQ(list->num_elements, 2);
+    EXPECT_EQ(list->num_elements, 2);
 
-    int count = list->size;
+    int count = list->num_elements;
     int i;
     for(i=0; i<100; i++) {
         char buf[33];
@@ -104,7 +102,7 @@ TEST(add, testAddResizePath) {
     }
     char* res = get(list, 1);
     EXPECT_EQ(strcmp("test2", res), 0);
-    EXPECT_EQ(count, list->size);
+    EXPECT_EQ(count, list->num_elements);
     destroyList(list);
 }
 
